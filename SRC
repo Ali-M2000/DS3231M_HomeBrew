@@ -1,0 +1,50 @@
+/*
+DS3231M Real Time Clock + AT24C32 EEPROM
+Ali.M
+*/
+
+#include <Wire.h>
+
+const uint8_t m_address = 0b1010111, c_address = 0b1101000;
+
+void setup() {
+
+  uint8_t buff[16];
+
+  delay(3000);
+  Serial.begin(9600);
+  Wire.begin();
+  delay(100);
+
+  Wire.beginTransmission(m_address);
+  Serial.print("EEPROM ACK: ");
+  Serial.println(!Wire.endTransmission()); // 1 if ack
+  Wire.beginTransmission(c_address);
+  Serial.print("   RTC ACK: ");
+  Serial.println(!Wire.endTransmission()); // 1 if ack
+  
+  Serial.println("RTC Data:");
+  Wire.beginTransmission(c_address);
+  Wire.write(0);
+  Wire.endTransmission();
+  for(uint8_t i=0;i<2;++i) {
+    Wire.requestFrom(c_address,10);
+    if(Wire.available()) {
+      Wire.readBytes(buff,10);
+    }
+    for(int j=0;j<10 && !(i==1 && j==9);++j) {
+      if(i*10+j<16) Serial.print("0");
+      Serial.print(i*10+j,HEX); Serial.print("h : ");
+      for(int k=7;k>0;--k) {
+        Serial.print(bitRead(buff[j], k));
+      }
+      Serial.println(bitRead(buff[j], 0));
+      delay(10);
+    }
+  }
+
+}
+
+void loop() {
+
+}
